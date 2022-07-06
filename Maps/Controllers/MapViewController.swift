@@ -48,6 +48,10 @@ class MapViewController: UIViewController {
     }
     
     @objc func trackLocation() {
+        route?.map = nil
+        route = GMSPolyline()
+        routePath = GMSMutablePath()
+        route?.map = mapView
         locationManager?.startUpdatingLocation()
     }
     
@@ -99,7 +103,12 @@ class MapViewController: UIViewController {
 
 extension MapViewController: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        print(locations.first)
+        guard let location = locations.last else { return }
+        routePath?.add(location.coordinate)
+        route?.path = routePath
+        
+        let position = GMSCameraPosition.camera(withTarget: location.coordinate, zoom: 17)
+        mapView.animate(to: position)
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
