@@ -13,6 +13,7 @@ import SnapKit
 class MapViewController: UIViewController {
     
     var locationManager: CLLocationManager?
+    var manualMarker: GMSMarker?
     var route: GMSPolyline?
     var routePath: GMSMutablePath?
     
@@ -89,6 +90,7 @@ class MapViewController: UIViewController {
         let camera = GMSCameraPosition.camera(withTarget: coordinate, zoom: 17)
         mapView.camera = camera
         mapView.isMyLocationEnabled = true
+        mapView.delegate = self
     }
     
     private func configureLocationManager() {
@@ -96,8 +98,22 @@ class MapViewController: UIViewController {
         guard let locationManager = locationManager else { return }
         
         locationManager.delegate = self
+        locationManager.allowsBackgroundLocationUpdates = true
+        locationManager.pausesLocationUpdatesAutomatically = false
+        locationManager.startMonitoringSignificantLocationChanges()
         locationManager.requestWhenInUseAuthorization()
-//        locationManager.allowsBackgroundLocationUpdates = true
+    }
+}
+
+extension MapViewController: GMSMapViewDelegate {
+    func mapView(_ mapView: GMSMapView, didTapAt coordinate: CLLocationCoordinate2D) {
+        if let marker = manualMarker {
+            marker.position = coordinate
+        } else {
+            let marker = GMSMarker(position: coordinate)
+            marker.map = mapView
+            manualMarker = marker
+        }
     }
 }
 
@@ -109,6 +125,7 @@ extension MapViewController: CLLocationManagerDelegate {
         
         let position = GMSCameraPosition.camera(withTarget: location.coordinate, zoom: 17)
         mapView.animate(to: position)
+        print(location)
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
