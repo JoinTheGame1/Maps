@@ -16,6 +16,7 @@ class MapViewController: UIViewController {
     var manualMarker: GMSMarker?
     var route: GMSPolyline?
     var routePath: GMSMutablePath?
+    var isTracking: Bool = false
     
     private let mapView: GMSMapView = {
         let map = GMSMapView()
@@ -23,21 +24,11 @@ class MapViewController: UIViewController {
         return map
     }()
     
-    private let startNewTrackButton: UIButton = {
+    private let trackButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .link
-        button.setTitle("Начать новый трек", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 8
-        return button
-    }()
-    
-    private let stopTrackButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .link
-        button.setTitle("Закончить трек", for: .normal)
+        button.backgroundColor = .systemGreen
+        button.setTitle("Start tracking", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
         return button
@@ -47,7 +38,7 @@ class MapViewController: UIViewController {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .link
-        button.setTitle("Показать последний маршрут", for: .normal)
+        button.setTitle("Show last track", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
         return button
@@ -68,23 +59,23 @@ class MapViewController: UIViewController {
         configureLocationManager()
     }
     
-    @objc func startTrack() {
-        route = GMSPolyline()
-        routePath = GMSMutablePath()
-        route?.map = mapView
-        locationManager?.startUpdatingLocation()
-        UIView.animate(withDuration: 0) {
-            self.startNewTrackButton.isHidden = true
-            self.stopTrackButton.isHidden = false
+    @objc func track() {
+        if isTracking {
+            route?.map = nil
+            routePath = nil
+            locationManager?.stopUpdatingLocation()
+        } else {
+            route = GMSPolyline()
+            routePath = GMSMutablePath()
+            route?.map = mapView
+            route?.strokeWidth = 5
+            locationManager?.startUpdatingLocation()
         }
-    }
-    
-    @objc func stopTrack() {
-        route?.map = nil
-        routePath = nil
-        UIView.animate(withDuration: 0) {
-            self.startNewTrackButton.isHidden = false
-            self.stopTrackButton.isHidden = true
+        isTracking.toggle()
+        UIView.animate(withDuration: 0.5) {
+            self.trackButton.setTitle(self.isTracking ? "Stop tracking" : "Start tracking",
+                                      for: .normal)
+            self.trackButton.backgroundColor = self.isTracking ? .systemRed : .systemGreen
         }
     }
     
@@ -94,37 +85,27 @@ class MapViewController: UIViewController {
     
     private func setupViews() {
         view.addSubview(mapView)
-        view.addSubview(startNewTrackButton)
-        view.addSubview(stopTrackButton)
+        view.addSubview(trackButton)
         view.addSubview(showLastTrackButton)
         view.addSubview(currentLocationButton)
         
-        startNewTrackButton.addTarget(self, action: #selector(startTrack), for: .touchUpInside)
-        stopTrackButton.addTarget(self, action: #selector(stopTrack), for: .touchUpInside)
+        trackButton.addTarget(self, action: #selector(track), for: .touchUpInside)
         currentLocationButton.addTarget(self, action: #selector(currentLocation), for: .touchUpInside)
-        
-        stopTrackButton.isHidden = true
         
         mapView.snp.makeConstraints { make in
             make.size.equalToSuperview()
         }
-        startNewTrackButton.snp.makeConstraints { make in
+        trackButton.snp.makeConstraints { make in
             make.top.equalToSuperview().inset(40)
             make.left.equalToSuperview().inset(16)
-            make.height.equalTo(40)
-            make.width.equalTo(view.snp.width).multipliedBy(0.45)
-        }
-        stopTrackButton.snp.makeConstraints { make in
-            make.top.equalToSuperview().inset(40)
-            make.right.equalToSuperview().inset(16)
             make.height.equalTo(40)
             make.width.equalTo(view.snp.width).multipliedBy(0.45)
         }
         showLastTrackButton.snp.makeConstraints { make in
-            make.left.equalToSuperview().inset(16)
+            make.top.equalToSuperview().inset(40)
             make.right.equalToSuperview().inset(16)
             make.height.equalTo(40)
-            make.bottom.equalToSuperview().inset(32)
+            make.width.equalTo(view.snp.width).multipliedBy(0.45)
         }
         currentLocationButton.snp.makeConstraints { make in
             make.right.equalToSuperview().inset(16)
