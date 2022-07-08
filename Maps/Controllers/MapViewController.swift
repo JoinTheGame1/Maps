@@ -10,13 +10,17 @@ import GoogleMaps
 import CoreLocation
 import SnapKit
 
+
 class MapViewController: UIViewController {
     
-    var locationManager: CLLocationManager?
-    var manualMarker: GMSMarker?
-    var route: GMSPolyline?
-    var routePath: GMSMutablePath?
-    var isTracking: Bool = false
+    private let realmService = RealmService.shared
+    private var locationManager: CLLocationManager?
+    private var manualMarker: GMSMarker?
+    private var route: GMSPolyline?
+    private var routePath: GMSMutablePath?
+    private var lastRoute: [CLLocationCoordinate2D] = []
+    private var isTracking: Bool = false
+    private var isShowingLastRoute: Bool = false
     
     private let mapView: GMSMapView = {
         let map = GMSMapView()
@@ -34,11 +38,11 @@ class MapViewController: UIViewController {
         return button
     }()
     
-    private let showLastTrackButton: UIButton = {
+    private let showLastRouteButton: UIButton = {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .link
-        button.setTitle("Show last track", for: .normal)
+        button.setTitle("Show last route", for: .normal)
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 8
         return button
@@ -55,20 +59,15 @@ class MapViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViews()
-        configureMap()
         configureLocationManager()
+        setupMap()
     }
     
-    @objc func track() {
+    @objc func trackButtonAction() {
         if isTracking {
-            route?.map = nil
-            routePath = nil
-            locationManager?.stopUpdatingLocation()
+            saveRoute()
         } else {
-            route = GMSPolyline()
-            routePath = GMSMutablePath()
-            route?.map = mapView
-            route?.strokeWidth = 5
+            showLastRouteButtonAction()
             locationManager?.startUpdatingLocation()
         }
         isTracking.toggle()
@@ -79,6 +78,66 @@ class MapViewController: UIViewController {
         }
     }
     
+    private func saveRoute() {
+        route?.map = nil
+        locationManager?.stopUpdatingLocation()
+        
+        guard let path = route?.path else { return }
+
+        var coordinates: [Location] = []
+        for i in 0..<path.count() {
+            let coordinate = path.coordinate(at: i)
+            let location = Location(latitude: coordinate.latitude, longitude: coordinate.longitude)
+            coordinates.append(location)
+        }
+        realmService.saveRoute(route: coordinates)
+    }
+    
+    private func loadRoute() {
+        guard let route = realmService.loadRoute() else { return }
+        
+        let lastRouteLocation = Array(route)
+        self.lastRoute = lastRouteLocation
+            .compactMap({ CLLocationCoordinate2D(latitude: $0.latitude, longitude: $0.longitude) })
+        
+        guard !self.lastRoute.isEmpty,
+              let firstPoint = self.lastRoute.first,
+              let lastPoint = self.lastRoute.last
+        else {
+            showError(message: "Previous route not found ;(")
+            return
+        }
+        
+        setupRoutePath()
+        self.lastRoute.forEach { point in
+            self.routePath?.add(point)
+            self.route?.path = self.routePath
+        }
+        
+        let bounds = GMSCoordinateBounds(coordinate: firstPoint, coordinate: lastPoint)
+        let cameraUpdate = GMSCameraUpdate.fit(bounds)
+        mapView.moveCamera(cameraUpdate)
+    }
+    
+    @objc private func showLastRouteButtonAction() {
+        if isShowingLastRoute {
+            setupRoutePath()
+            currentLocation()
+        } else {
+            if isTracking {
+                showTrackAlert()
+            } else {
+                loadRoute()
+            }
+        }
+        
+        isShowingLastRoute.toggle()
+        UIView.animate(withDuration: 0.5) {
+            self.showLastRouteButton.setTitle(self.isShowingLastRoute ? "Close last route" : "Show last route",
+                                      for: .normal)
+        }
+    }
+    
     @objc func currentLocation() {
         locationManager?.requestLocation()
     }
@@ -86,10 +145,11 @@ class MapViewController: UIViewController {
     private func setupViews() {
         view.addSubview(mapView)
         view.addSubview(trackButton)
-        view.addSubview(showLastTrackButton)
+        view.addSubview(showLastRouteButton)
         view.addSubview(currentLocationButton)
         
-        trackButton.addTarget(self, action: #selector(track), for: .touchUpInside)
+        trackButton.addTarget(self, action: #selector(trackButtonAction), for: .touchUpInside)
+        showLastRouteButton.addTarget(self, action: #selector(showLastRouteButtonAction), for: .touchUpInside)
         currentLocationButton.addTarget(self, action: #selector(currentLocation), for: .touchUpInside)
         
         mapView.snp.makeConstraints { make in
@@ -101,7 +161,7 @@ class MapViewController: UIViewController {
             make.height.equalTo(40)
             make.width.equalTo(view.snp.width).multipliedBy(0.45)
         }
-        showLastTrackButton.snp.makeConstraints { make in
+        showLastRouteButton.snp.makeConstraints { make in
             make.top.equalToSuperview().inset(40)
             make.right.equalToSuperview().inset(16)
             make.height.equalTo(40)
@@ -115,12 +175,19 @@ class MapViewController: UIViewController {
         }
     }
     
-    private func configureMap() {
-        let coordinate = CLLocationCoordinate2D(latitude: 55.753215, longitude: 37.622504)
-        let camera = GMSCameraPosition.camera(withTarget: coordinate, zoom: 17)
-        mapView.camera = camera
+    private func setupRoutePath() {
+        route?.map = nil
+        routePath = nil
+        routePath = GMSMutablePath()
+        route = GMSPolyline(path: routePath)
+        route?.map = mapView
+        route?.strokeWidth = 5
+    }
+    
+    private func setupMap() {
         mapView.isMyLocationEnabled = true
         mapView.delegate = self
+        currentLocation()
     }
     
     private func configureLocationManager() {
@@ -132,6 +199,21 @@ class MapViewController: UIViewController {
         locationManager.pausesLocationUpdatesAutomatically = false
         locationManager.startMonitoringSignificantLocationChanges()
         locationManager.requestWhenInUseAuthorization()
+    }
+    
+    private func showTrackAlert() {
+        let okAction = UIAlertAction(title: "OK", style: .default) { _ in
+            self.trackButtonAction()
+            self.loadRoute()
+        }
+        let alert = UIAlertController(title: "",
+                                      message: """
+                                      If you want to display the last route,
+                                      need to stop track the current one
+                                      """,
+                                      preferredStyle: .alert)
+        alert.addAction(okAction)
+        present(alert, animated: true)
     }
 }
 
@@ -150,15 +232,16 @@ extension MapViewController: GMSMapViewDelegate {
 extension MapViewController: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
-        routePath?.add(location.coordinate)
-        route?.path = routePath
         
         let position = GMSCameraPosition.camera(withTarget: location.coordinate, zoom: 17)
         mapView.animate(to: position)
-        print(location)
+        if isTracking {
+            self.routePath?.add(location.coordinate)
+            self.route?.path = routePath
+        }
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        print(error.localizedDescription)
+        showError(message: error.localizedDescription)
     }
 }

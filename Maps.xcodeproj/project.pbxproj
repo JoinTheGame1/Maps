@@ -12,7 +12,10 @@
 		05E635D32874FC5100DEF995 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 05E635D22874FC5100DEF995 /* Assets.xcassets */; };
 		05E635D62874FC5100DEF995 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 05E635D42874FC5100DEF995 /* LaunchScreen.storyboard */; };
 		05E635E3287528A700DEF995 /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E635E2287528A700DEF995 /* MapViewController.swift */; };
-		47A7753C64C317A5069CF7F5 /* libPods-Maps.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BD9BD83EA8F1E6809390CF6 /* libPods-Maps.a */; };
+		05E635EA28777EC000DEF995 /* RealmService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E635E928777EC000DEF995 /* RealmService.swift */; };
+		05E635EC28778B9C00DEF995 /* Location.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E635EB28778B9C00DEF995 /* Location.swift */; };
+		05E635EF2877B9C800DEF995 /* UIViewControllerExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05E635EE2877B9C800DEF995 /* UIViewControllerExtension.swift */; };
+		066B97E184C31BB6CEEFB938 /* Pods_Maps.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0CF929EFFD4E218B2CA783F3 /* Pods_Maps.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,9 +26,12 @@
 		05E635D52874FC5100DEF995 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		05E635D72874FC5100DEF995 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		05E635E2287528A700DEF995 /* MapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
+		05E635E928777EC000DEF995 /* RealmService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealmService.swift; sourceTree = "<group>"; };
+		05E635EB28778B9C00DEF995 /* Location.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Location.swift; sourceTree = "<group>"; };
+		05E635EE2877B9C800DEF995 /* UIViewControllerExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIViewControllerExtension.swift; sourceTree = "<group>"; };
+		0CF929EFFD4E218B2CA783F3 /* Pods_Maps.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Maps.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		167A47139D994543BB929539 /* Pods-Maps.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Maps.debug.xcconfig"; path = "Target Support Files/Pods-Maps/Pods-Maps.debug.xcconfig"; sourceTree = "<group>"; };
 		75033C70F25EE15CD613F962 /* Pods-Maps.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Maps.release.xcconfig"; path = "Target Support Files/Pods-Maps/Pods-Maps.release.xcconfig"; sourceTree = "<group>"; };
-		9BD9BD83EA8F1E6809390CF6 /* libPods-Maps.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Maps.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -33,7 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				47A7753C64C317A5069CF7F5 /* libPods-Maps.a in Frameworks */,
+				066B97E184C31BB6CEEFB938 /* Pods_Maps.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,6 +67,9 @@
 		05E635C82874FC4F00DEF995 /* Maps */ = {
 			isa = PBXGroup;
 			children = (
+				05E635ED2877B9A400DEF995 /* Extensions */,
+				05E635E828777E7B00DEF995 /* Services */,
+				05E635E728777E5E00DEF995 /* Models */,
 				05E635E62875294200DEF995 /* Controllers */,
 				05E635E42875290800DEF995 /* Delegate */,
 				05E635E52875292E00DEF995 /* Resources */,
@@ -95,6 +104,30 @@
 			path = Controllers;
 			sourceTree = "<group>";
 		};
+		05E635E728777E5E00DEF995 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				05E635EB28778B9C00DEF995 /* Location.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		05E635E828777E7B00DEF995 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				05E635E928777EC000DEF995 /* RealmService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		05E635ED2877B9A400DEF995 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				05E635EE2877B9C800DEF995 /* UIViewControllerExtension.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
 		7CDD2A9C89AA6DE305BA7F9B /* Pods */ = {
 			isa = PBXGroup;
 			children = (
@@ -107,7 +140,7 @@
 		DE0085C2FF04826D6729443B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				9BD9BD83EA8F1E6809390CF6 /* libPods-Maps.a */,
+				0CF929EFFD4E218B2CA783F3 /* Pods_Maps.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -124,6 +157,7 @@
 				05E635C32874FC4F00DEF995 /* Frameworks */,
 				05E635C42874FC4F00DEF995 /* Resources */,
 				CC168E28432145942C18158D /* [CP] Copy Pods Resources */,
+				69B727F9EF18EB63B9B94324 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -202,6 +236,23 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
+		69B727F9EF18EB63B9B94324 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Maps/Pods-Maps-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Maps/Pods-Maps-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Maps/Pods-Maps-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 		CC168E28432145942C18158D /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -228,7 +279,10 @@
 			files = (
 				05E635CA2874FC4F00DEF995 /* AppDelegate.swift in Sources */,
 				05E635E3287528A700DEF995 /* MapViewController.swift in Sources */,
+				05E635EF2877B9C800DEF995 /* UIViewControllerExtension.swift in Sources */,
+				05E635EC28778B9C00DEF995 /* Location.swift in Sources */,
 				05E635CC2874FC4F00DEF995 /* SceneDelegate.swift in Sources */,
+				05E635EA28777EC000DEF995 /* RealmService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

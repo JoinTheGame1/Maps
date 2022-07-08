@@ -2,6 +2,8 @@
 # platform :ios, '9.0'
 
 target 'Maps' do
+  use_frameworks!
+  pod 'RealmSwift'
   pod 'GoogleMaps'
   pod 'SnapKit', '~> 5.6.0'
 
