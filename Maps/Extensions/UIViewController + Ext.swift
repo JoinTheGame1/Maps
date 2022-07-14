@@ -1,5 +1,5 @@
 //
-//  UIViewController + Extension.swift
+//  UIViewController + Ext.swift
 //  Maps
 //
 //  Created by Никитка on 08.07.2022.

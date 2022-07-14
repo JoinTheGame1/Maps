@@ -9,6 +9,7 @@ import GoogleMaps
 
 class MapViewModel {
     
+    weak var appCoordinator: AppCoordinator?
     var route: GMSPolyline?
     var routePath: GMSMutablePath?
     var lastRoute: [CLLocationCoordinate2D] = []
@@ -68,7 +69,7 @@ class MapViewModel {
         routePath = nil
         routePath = GMSMutablePath()
         route = GMSPolyline(path: routePath)
-        route?.strokeWidth = 5
+        route?.strokeWidth = 10
         addRouteToMap?(route)
     }
     
@@ -89,6 +90,7 @@ class MapViewModel {
     }
     
     private func startShowingLastRoute() {
+        stopUpdatingLocation?()
         isTracking ? showTrackAlert?() : loadRoute()
         isShowingLastRoute.toggle()
         showLastRouteButtonAnimate?(self)

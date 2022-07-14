@@ -9,6 +9,12 @@ import UIKit
 
 extension MapViewController {
     
+    func makeBottomView() -> BottomView {
+        let view = BottomView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }
+    
     func makeTrackButton() -> UIButton {
         let button = UIButton(type: .system)
         button.translatesAutoresizingMaskIntoConstraints = false

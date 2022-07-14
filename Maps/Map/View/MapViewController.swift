@@ -11,42 +11,50 @@ import SnapKit
 
 class MapViewController: UIViewController {
     
-    private var viewModel: MapViewModel?
+    var viewModel: MapViewModel
     private var locationManager: CLLocationManager?
     private var manualMarker: GMSMarker?
     private let mapView: GMSMapView = {
         let map = GMSMapView()
+        map.isMyLocationEnabled = true
+        map.settings.myLocationButton = true
         map.translatesAutoresizingMaskIntoConstraints = false
         return map
     }()
     
-    lazy var trackButton: UIButton = makeTrackButton()
-    lazy var showLastRouteButton: UIButton = makeShowLastRouteButton()
+    lazy var bottomView: BottomView = makeBottomView()
     lazy var currentLocationButton: UIButton = makeCurrentLocationButton()
+    
+    init(viewModel: MapViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupViewModel()
-        setupViews()
+        setupUI()
         configureLocationManager()
     }
     
-    @objc func trackButtonAction() {
-        self.viewModel?.trackButtonTapped()
+    @objc private func trackButtonAction() {
+        self.viewModel.trackButtonTapped()
     }
     
-    @objc func showLastRouteButtonAction() {
-        self.viewModel?.showLastRouteButtonTapped()
+    @objc private func showLastRouteButtonAction() {
+        self.viewModel.showLastRouteButtonTapped()
     }
     
-    @objc func showCurrentLocation() {
-        self.viewModel?.showCurrentLocation?()
+    @objc private func showCurrentLocation() {
+        self.viewModel.showCurrentLocation?()
     }
     
     private func setupViewModel() {
-        viewModel = MapViewModel()
-        guard let viewModel = viewModel else { return }
-
+        bottomView.viewModel = self.viewModel
         viewModel.startUpdatingLocation = { [weak self] in
             self?.locationManager?.startUpdatingLocation()
         }
@@ -62,20 +70,6 @@ class MapViewController: UIViewController {
         viewModel.addRouteToMap = { [weak self] route in
             route?.map = self?.mapView
         }
-        viewModel.trackButtonAnimate = { [weak self] model in
-            guard let self = self else { return }
-            UIView.animate(withDuration: 0.5) {
-                self.trackButton.setTitle(model.isTracking ? "Stop tracking" : "Start tracking", for: .normal)
-                self.trackButton.backgroundColor = model.isTracking ? .systemRed : .systemGreen
-            }
-        }
-        viewModel.showLastRouteButtonAnimate = { [weak self] model in
-            guard let self = self else { return }
-            UIView.animate(withDuration: 0.5) {
-                self.showLastRouteButton.setTitle(model.isShowingLastRoute ? "Close last route" : "Show last route",
-                                                  for: .normal)
-            }
-        }
         viewModel.showTrackAlert = { [weak self] in
             self?.showTrackAlert()
         }
@@ -86,34 +80,25 @@ class MapViewController: UIViewController {
         }
     }
     
-    private func setupViews() {
+    private func setupUI() {
         view.addSubview(mapView)
-        view.addSubview(trackButton)
-        view.addSubview(showLastRouteButton)
+        view.addSubview(bottomView)
         view.addSubview(currentLocationButton)
         setupMap()
         
-        trackButton.addTarget(self, action: #selector(trackButtonAction), for: .touchUpInside)
-        showLastRouteButton.addTarget(self, action: #selector(showLastRouteButtonAction), for: .touchUpInside)
         currentLocationButton.addTarget(self, action: #selector(showCurrentLocation), for: .touchUpInside)
         
         mapView.snp.makeConstraints { make in
             make.size.equalToSuperview()
         }
-        trackButton.snp.makeConstraints { make in
-            make.top.equalToSuperview().inset(40)
-            make.left.equalToSuperview().inset(16)
-            make.height.equalTo(40)
-            make.width.equalTo(view.snp.width).multipliedBy(0.45)
-        }
-        showLastRouteButton.snp.makeConstraints { make in
-            make.top.equalToSuperview().inset(40)
-            make.right.equalToSuperview().inset(16)
-            make.height.equalTo(40)
-            make.width.equalTo(view.snp.width).multipliedBy(0.45)
+        bottomView.snp.makeConstraints { make in
+            make.leading.equalToSuperview()
+            make.trailing.equalToSuperview()
+            make.bottom.equalToSuperview().inset(-bottomView.cornerRadius)
+            make.height.equalTo(self.view.frame.height / 8)
         }
         currentLocationButton.snp.makeConstraints { make in
-            make.right.equalToSuperview().inset(16)
+            make.trailing.equalToSuperview().inset(16)
             make.bottom.equalToSuperview().inset(80)
             make.height.equalTo(40)
             make.width.equalTo(40)
@@ -121,9 +106,8 @@ class MapViewController: UIViewController {
     }
     
     private func setupMap() {
-        mapView.isMyLocationEnabled = true
         mapView.delegate = self
-        viewModel?.setupRoutePath()
+        viewModel.setupRoutePath()
     }
     
     private func configureLocationManager() {
@@ -139,8 +123,8 @@ class MapViewController: UIViewController {
     
     private func showTrackAlert() {
         let okAction = UIAlertAction(title: "OK", style: .default) { _ in
-            self.viewModel?.trackButtonTapped()
-            self.viewModel?.loadRoute()
+            self.viewModel.trackButtonTapped()
+            self.viewModel.loadRoute()
         }
         let alert = UIAlertController(title: "",
                                       message: """
@@ -170,7 +154,7 @@ extension MapViewController: CLLocationManagerDelegate {
         guard let coordinate = locations.last?.coordinate else { return }
         let position = GMSCameraPosition.camera(withTarget: coordinate, zoom: 17)
         mapView.animate(to: position)
-        self.viewModel?.updateLocations(coordinate: coordinate)
+        self.viewModel.updateLocations(coordinate: coordinate)
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
